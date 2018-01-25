@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Computated</title>
+  </head>
+  <body>
+  <script>
+//code to find relative elevation matrix
+var lati = JSON.parse(window.localStorage.getItem("lati"));
+var loni = JSON.parse(window.localStorage.getItem("loni"));
+var xmin = Math.min.apply(null,lat);
+var xmax = Math.max.apply(null,lat);
+var ymin = Math.min.apply(null,lon);
+var ymax = Math.max.apply(null,lon);
+ELEVATION_BASE_URL = 'https://maps.googleapis.com/maps/api/elevation/json?locations='
+//  computing elevations of all coordinates
+var elevation_matrix = [[]];
+var index_i = 0;
+var index_j = 0;
+var elevation_sum = 0;
+var n = 0;
+var count = [[]];
+for(var i=xmin;i<=xmax;i+=0.01){
+    for(var j=ymax;j>=ymin; j-=0.01){
+      n = n + 1;
+      var url = ELEVATION_BASE_URL + i + "," + j + "&key=AIzaSyAJYe1NaEaTtRRrKZvGr1sa35druR5TkbA";
+      fetch(url) // Call the fetch function passing the url of the API as a parameter
+      .then((resp) => resp.json())
+      .then(function() {
+        elevation_matrix[index_i][index_j] = resp['results']['elevation'];
+        elevation_sum += elevation_matrix[index_i][index_j];
+        count[index_i][index_j] = 0;
+      })
+      //var response = simplejson.load(urllib.urlopen(url));
+      index_j += 1;
+                }
+                index_i += 1;
+              }
+//normalizing the elevation matrix
+for(var i=0;i<=index_i;i+=1){
+    for(var j=index_j;j>=0;j-=1){
+        elevation_matrix[i][j] = elevation_matrix[i][j] / elevation_sum;
+      }
+    }
+
+var pos = [[]];
+for(var i=0;i<=n;i++){
+    var maxx = 0;
+    for(var j=xmin;j<=xmax;j++){
+        for (var k=ymax;k>=ymin;k--){
+            if (Math.max(elevation_matrix) > maxx) {
+                maxx =Math.max(elevation_matrix);
+                var posx = j;
+                var posy = k;
+              }
+            }
+          }
+    if (maxx > -1){
+        if ((posx > 0) && (elevation_matrix[posx][posy] != -1))
+            count[posx - 1][posy] = count[posx][posy] + 1 ;
+        if ((posx < index_i) && (elevation_matrix[posx][posy] != -1))
+            count[posx + 1][posy] = count[posx][posy] + 1 ;
+        if ((posy > 0) && (elevation_matrix[posx][posy] != -1))
+            count[posx][posy - 1] = count[posx][posy] + 1 ;
+        if ((posx < index_i) && (elevation_matrix[posx][posy] != -1))
+            count[posx][posy + 1] = count[posx][posy] + 1 ;
+    elevation_matrix[posx][posy] = -1 ;
+  }
+}
+</script>
+</body>
+</html>

@@ -21,19 +21,15 @@
         font-size: 15px;
         font-weight: 300;
       }
-
       #infowindow-content .title {
         font-weight: bold;
       }
-
       #infowindow-content {
         display: none;
       }
-
       #map #infowindow-content {
         display: inline;
       }
-
       .pac-card {
         margin: 10px 10px 0 0;
         border-radius: 2px 0 0 2px;
@@ -44,23 +40,19 @@
         background-color: #fff;
         font-family: Roboto;
       }
-
       #pac-container {
         padding-bottom: 12px;
         margin-right: 12px;
       }
-
       .pac-controls {
         display: inline-block;
         padding: 5px 11px;
       }
-
       .pac-controls label {
         font-family: Roboto;
         font-size: 13px;
         font-weight: 300;
       }
-
       #pac-input {
         background-color: #fff;
         font-family: Roboto;
@@ -71,11 +63,9 @@
         text-overflow: ellipsis;
         width: 400px;
       }
-
       #pac-input:focus {
         border-color: #4d90fe;
       }
-
       #title {
         color: #fff;
         background-color: #4d90fe;
@@ -94,14 +84,12 @@
     <script>
     var map, infoWindow,poly;
     var lat = [], lon = [];
-
       function initAutocomplete() {
         map = new google.maps.Map(document.getElementById('map'), {
           center: {lat: -33.8688, lng: 151.2195},
           zoom: 20,
           mapTypeId: 'roadmap'
         });
-
         //code to add polygon
         poly = new google.maps.Polyline({
               strokeColor: '#000000',
@@ -109,12 +97,9 @@
               strokeWeight: 3
             });
             poly.setMap(map);
-
             // Add a listener for the click event
             map.addListener('click', addLatLng);
-
         infoWindow = new google.maps.InfoWindow;
-
         // Try HTML5 geolocation. to view current location
         if (navigator.geolocation) {
           navigator.geolocation.getCurrentPosition(function(position) {
@@ -122,7 +107,6 @@
               lat: position.coords.latitude,
               lng: position.coords.longitude
             };
-
             infoWindow.setPosition(pos);
             infoWindow.setContent('You are here!');
             infoWindow.open(map);
@@ -134,33 +118,27 @@
           // Browser doesn't support Geolocation
           handleLocationError(false, infoWindow, map.getCenter());
         }
-
         // Create the search box and link it to the UI element.
         var input = document.getElementById('pac-input');
         var searchBox = new google.maps.places.SearchBox(input);
         map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
-
         // Bias the SearchBox results towards current map's viewport.
         map.addListener('bounds_changed', function() {
           searchBox.setBounds(map.getBounds());
         });
-
         var markers = [];
         // Listen for the event fired when the user selects a prediction and retrieve
         // more details for that place.
         searchBox.addListener('places_changed', function() {
           var places = searchBox.getPlaces();
-
           if (places.length == 0) {
             return;
           }
-
           // Clear out the old markers.
           markers.forEach(function(marker) {
             marker.setMap(null);
           });
           markers = [];
-
           // For each place, get the icon, name and location.
           var bounds = new google.maps.LatLngBounds();
           places.forEach(function(place) {
@@ -175,7 +153,6 @@
               anchor: new google.maps.Point(17, 34),
               scaledSize: new google.maps.Size(25, 25)
             };
-
             // Create a marker for each place.
             markers.push(new google.maps.Marker({
               map: map,
@@ -183,7 +160,6 @@
               title: place.name,
               position: place.geometry.location
             }));
-
             if (place.geometry.viewport) {
               // Only geocodes have viewport.
               bounds.union(place.geometry.viewport);
@@ -201,17 +177,14 @@
                               'Error: Your browser doesn\'t support geolocation.');
         infoWindow.open(map);
       }
-
       // Handles click events on a map, and adds a new point to the Polyline.
       function addLatLng(event) {
         var path = poly.getPath();
-
         // Because path is an MVCArray, we can simply append a new coordinate
         // and it will automatically appear.
         path.push(event.latLng);
         lat.push(event.latLng.lat());
         lon.push(event.latLng.lng());
-
         // Add a new marker at the new plotted point on the polyline.
         var marker = new google.maps.Marker({
           position: event.latLng,
@@ -219,76 +192,16 @@
           map: map
         });
       }
+      window.localStorage.setItem("lati", JSON.stringify(lat));
+      window.localStorage.setItem("loni", JSON.stringify(lon));
+      function visitPage(){
+        window.location='http://www.google.com';
+    }
 
-      //code to find relative elevation matrix
-      var xmin = Math.min.apply(null,lat);
-      var xmax = Math.max.apply(null,lat);
-      var ymin = Math.min.apply(null,lon);
-      var ymax = Math.max.apply(null,lon);
-
-      ELEVATION_BASE_URL = 'https://maps.googleapis.com/maps/api/elevation/json?locations='
-
-    //  computing elevations of all coordinates
-      var elevation_matrix = [[]];
-      var index_i = 0;
-      var index_j = 0;
-      var elevation_sum = 0;
-      var n = 0;
-      var count = [[]];
-      for(var i=xmin;i<=xmax;i+=0.01){
-          for(var j=ymax;j>=ymin; j-=0.01){
-            n = n + 1;
-            var url = ELEVATION_BASE_URL + i + "," + j + "&key=AIzaSyAJYe1NaEaTtRRrKZvGr1sa35druR5TkbA";
-            fetch(url) // Call the fetch function passing the url of the API as a parameter
-            .then((resp) => resp.json())
-            .then(function() {
-              elevation_matrix[index_i][index_j] = resp['results']['elevation'];
-              elevation_sum += elevation_matrix[index_i][index_j];
-              count[index_i][index_j] = 0;
-            })
-            //var response = simplejson.load(urllib.urlopen(url));
-
-            index_j += 1;
-                      }
-                      index_i += 1;
-                    }
-
-      //normalizing the elevation matrix
-      for(var i=0;i<=index_i;i++){
-          for (var j=index_j;j>=0,j--){
-              elevation_matrix[i][j] = elevation_matrix[i][j] / elevation_sum;
-            }
-/*
-      var pos = [[]];
-      for(var i=0;i<=n;i++){
-          var maxx = 0;
-          for(var j=xmin;j<=xmax;j++){
-              for (var k=ymax;k>=ymin;k--){
-                  if (Math.max(elevation_matrix) > maxx) {
-                      maxx =Math.max(elevation_matrix);
-                      var posx = j;
-                      var posy = k;
-                    }
-                  }
-
-          if (maxx > -1){
-
-              if (posx > 0) && (elevation_matrix[posx][posy] != -1)
-                  count[posx - 1][posy] = count[posx][posy] + 1 ;
-              if (posx < index_i) && (elevation_matrix[posx][posy] != -1)
-                  count[posx + 1][posy] = count[posx][posy] + 1 ;
-              if (posy > 0) && (elevation_matrix[posx][posy] != -1)
-                  count[posx][posy - 1] = count[posx][posy] + 1 ;
-              if (posx < index_i) && (elevation_matrix[posx][posy] != -1)
-                  count[posx][posy + 1] = count[posx][posy] + 1 ;
-          elevation_matrix[posx][posy] = -1 ;
-        }
-      }
-    //  console.log(edges);
-
-*/
     </script>
+    <button onclick="visitPage();">Visit Page Now</button>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBZQ6p4H6R3UEZfN5PusJPOe1l4C_AOesg&libraries=places&callback=initAutocomplete"
          async defer></script>
+
   </body>
 </html>
